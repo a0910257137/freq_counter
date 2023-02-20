@@ -1,6 +1,8 @@
 project(CCounter)
 cmake_minimum_required(VERSION 3.16)
 set (CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -O3)
+set_target_properties(${TARGET} PROPERTIES COMPILE_FLAGS "-pthread" LINK_FLAGS "-pthread")
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there. You may need to remove CMakeCache.txt. ")
 endif()
@@ -8,15 +10,13 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 file(GLOB SRC_LIST "${PROJECT_SOURCE_DIR}/src/*.c*")
 find_package(OpenCV REQUIRED)
-find_package(Threads REQUIRED)
-
 find_path(PYTHON3_NUMPY_INCLUDE_DIR 
         /home2/anders/miniconda3/envs/cpp/lib/python3.5/site-packages/numpy/core/include)
 find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
-
 find_package(PythonLibs 3.0 REQUIRED)
+find_package(Threads REQUIRED)
 include_directories(${PYTHON3_INCLUDE_DIRS} ${NumPy_INCLUDE_DIRS})
-include_directories( ${OpenCV_INCLUDE_DIRS})
+include_directories(${OpenCV_INCLUDE_DIRS})
 
 # populate matplotlib repository
 include(FetchContent)
@@ -33,8 +33,11 @@ include_directories(SYSTEM ${matplotlib_SOURCE_DIR})
 
 add_executable(infer.exe  ${SRC_LIST})
 link_directories( ${OpenCV_LIBRARY_DIRS})
+
 target_link_libraries(infer.exe
         PRIVATE
                 ${PYTHON_LIBRARIES}
                 Python3::NumPy 
-                ${OpenCV_LIBS})
+                m
+                ${OpenCV_LIBS}
+                ${TARGET} pthread)
